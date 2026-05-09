@@ -1,24 +1,61 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
-const client = require("../config/twilio");
+const generateOtp = require("../service/generateOtp");
+const bcrypt = require("bcryptjs");
 
+
+// send otp
 exports.sendOtp = async (req, res) => {
 
     try {
 
         const { phone } = req.body;
 
-        await client.verify.v2
-            .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-            .verifications
-            .create({
-                to: `+91${phone}`,
-                channel: "sms",
+      
+        if(!phone){
+            return res.status(400).json({
+                message : "phone number required"
+            })
+        }
+
+         let user = await User.findOne({ phone });
+
+         if (user && user.isProfileCompleted) {
+            return res.status(400).json({
+                message: "Mobile number already exists"
             });
+        }
+
+        const otp = generateOtp();
+
+        console.log("Generated OTP:", otp);
+
+        const otpExpiry = new Date(Date.now() + 5*60*1000);
+
+       
+
+        if(user){
+
+            user.otp = otp;
+            user.otpExpiry = otpExpiry;
+
+            await user.save();
+        }else{
+
+            user = await User.create({
+                phone,
+                otp,
+                otpExpiry
+            })
+        }
+
 
         res.status(200).json({
-            message: "OTP sent successfully",
-        });
+            message : "otp sent successfully",
+            otp
+        });    
+
+
 
     } catch (error) {
 
@@ -28,39 +65,53 @@ exports.sendOtp = async (req, res) => {
     }
 };
 
+
+//verify otp
 exports.verifyOtp = async (req, res) => {
 
     try {
 
         const { phone, otp } = req.body;
 
-        const verificationCheck = await client.verify.v2
-            .services(process.env.TWILIO_VERIFY_SERVICE_SID)
-            .verificationChecks
-            .create({
-                to: `+91${phone}`,
-                code: otp,
-            });
+       const user = await User.findOne({ phone });
 
-        if (verificationCheck.status !== "approved") {
+       if(!user){
+        return res.status(404).json({
+            message : "User not found"
+        });
+       }
 
+       if (String(user.otp) !== String(otp)){
+        return res.status(400).json({
+            message : "Invalid Otp"
+        });
+       }
+
+        if(user.otpExpiry < new Date()){
             return res.status(400).json({
-                message: "Invalid OTP",
+                message : "Otp expired"
             });
         }
 
         const token = jwt.sign(
-            { phone },
+            {
+                id : user._id, phone : user.phone
+            },
             process.env.JWT_SECRET,
             {
-                expiresIn: "7d",
+                expiresIn : "7d",
             }
         );
 
+        user.otp = null;  
+        user.otpExpiry = null;
+
+        await user.save();
+
         res.status(200).json({
-            message: "Login successful",
-            token,
-        });
+            message : "otp verify successfully",
+            token : token
+        })
 
     } catch (error) {
 
@@ -69,3 +120,153 @@ exports.verifyOtp = async (req, res) => {
         });
     }
 };
+
+
+
+// signup
+exports.signUp = async (req,res) => {
+
+
+    try {
+
+        const { name, username,age, email,gender,password,confirmPassword } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        if(!user){
+            return res.status(404).json({
+              message: "User not found"
+            })
+        }
+
+
+         if (password !== confirmPassword) {
+
+            return res.status(400).json({
+                message: "Passwords do not match"
+            });
+        }
+
+
+        if (password.length < 6 || password.length > 10) {
+
+               return res.status(400).json({
+                message: "Password must be between 6 and 10 characters"
+              });
+          }
+
+
+         const hashedPassword = await bcrypt.hash(password, 10);
+
+        const lastUser = await User.findOne().sort({ userId: -1 });
+
+            const newUserId = lastUser && !isNaN(lastUser.userId)
+               ? Number(lastUser.userId) + 1
+                 : 1;
+
+        user.userId = newUserId;
+
+        user.name = name;
+
+        user.age = age;
+
+        user.username = username;
+
+        user.email = email;
+
+        user.gender = gender;
+
+         user.password = hashedPassword;
+
+    
+
+        user.isProfileCompleted  = true;
+
+        await user.save();
+
+        res.status(200).json({
+            message : "register successfully",
+           user: {  
+       id: user.userId,
+        name: user.name,
+        phone: user.phone,
+        username: user.username,
+        email: user.email,
+        gender: user.gender
+    }
+        })
+        
+    } catch (error) {
+        res.status(500).json({
+            message : error.message
+        })
+    }
+
+}
+
+
+//login
+exports.login = async (req,res) => {
+
+
+    try {
+
+        const { phone, password} = req.body;
+
+        const user = await User.findOne({ phone });
+
+
+        if(!user){
+            return res.status(404).json({
+                message : "Mobile Number not exist"
+            })
+        }
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        )
+
+        if (!isMatch) {
+
+            return res.status(400).json({
+                message: "Wrong Password"
+            });
+        }
+
+         const token = jwt.sign(
+            {
+                id: user._id,
+                phone: user.phone
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        );
+
+        res.status(200).json({
+            message: "Login successful",
+            token,
+         user: {  
+       id: user.userId,
+        name: user.name,
+        phone: user.phone,
+        username: user.username,
+        email: user.email,
+        gender: user.gender
+
+        },
+    });
+        
+    } catch (error) {
+
+        res.status(500).json({
+            message : error.message
+        })
+        
+    }
+
+}
+
+
