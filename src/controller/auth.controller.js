@@ -270,3 +270,112 @@ exports.login = async (req,res) => {
 }
 
 
+//forgot request otp
+
+exports.forgot_otp = async (req,res) => {
+
+    try {
+
+        const { phone } = req.body;
+
+        if(!phone){
+            return res.status(400).json({
+                message : "phone number required"
+            })
+        }
+        
+        let user = await User.findOne({
+            phone
+        });
+
+        if(user && user.isProfileCompleted){
+           
+         const otp = generateOtp();
+
+         const otpExpiry = new Date(Date.now() + 5*60*1000);
+
+          user.otp = otp;
+
+          user.otpExpiry = otpExpiry;
+
+        await user.save();
+
+          res.status(200).json({
+            message : " otp sent successfully",
+            otp
+          })
+
+        }else{
+            return res.status(400).json({
+                message : "phone number not exist"
+            })
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            message : error.message
+        });
+    }
+
+}
+
+exports.forgotPassword = async (req, res) => {
+
+    try {
+
+        const { phone, otp,  newPassword } = req.body;
+
+         if (!phone || !otp || !newPassword) {
+            return res.status(400).json({
+                message: "Required fields are missing"
+            });
+        }
+
+        const user = await User.findOne( {  phone } );
+
+        if(!user){
+            return res.status(400).json({
+                message : "user not found"
+            });
+        }
+
+        
+         if (String(user.otp) !== String(otp)){
+        return res.status(400).json({
+            message : "Invalid Otp"
+        });
+       }
+
+        if(user.otpExpiry < new Date()){
+            return res.status(400).json({
+                message : "Otp expired"
+            });
+        }
+
+
+
+        const hashedPassword = await bcrypt.hash(newPassword , 10);
+
+        user.password = hashedPassword;
+
+
+          user.otp = null;
+
+         user.otpExpiry = null;
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "Password changed successfully"
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            message : error.message
+        })
+
+    }
+
+}
+
+
