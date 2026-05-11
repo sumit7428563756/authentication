@@ -11,7 +11,6 @@ exports.sendOtp = async (req, res) => {
 
         const { phone } = req.body;
 
-      
         if(!phone){
             return res.status(400).json({
                 message : "phone number required"
@@ -60,7 +59,7 @@ exports.sendOtp = async (req, res) => {
     } catch (error) {
 
         res.status(500).json({
-            message: error.message,
+            message : "server error" + error.message 
         });
     }
 };
@@ -116,7 +115,7 @@ exports.verifyOtp = async (req, res) => {
     } catch (error) {
 
         res.status(500).json({
-            message: error.message,
+            message : "server error" + error.message 
         });
     }
 };
@@ -198,7 +197,7 @@ exports.signUp = async (req,res) => {
         
     } catch (error) {
         res.status(500).json({
-            message : error.message
+            message : "server error" + error.message 
         })
     }
 
@@ -262,7 +261,7 @@ exports.login = async (req,res) => {
     } catch (error) {
 
         res.status(500).json({
-            message : error.message
+            message : "server error" + error.message 
         })
         
     }
@@ -313,7 +312,7 @@ exports.forgot_otp = async (req,res) => {
 
     } catch (error) {
         res.status(500).json({
-            message : error.message
+            message : "server error" + error.message 
         });
     }
 
@@ -371,8 +370,114 @@ exports.forgotPassword = async (req, res) => {
         
     } catch (error) {
         res.status(500).json({
-            message : error.message
+            message : "server error" + error.message 
         })
+
+    }
+
+}
+
+exports.getProfile = async  (req, res) => {
+
+    try {
+
+        const user = await User.findById(req.user.id).select("-password -otp -otpExpiry");
+
+        if(!user){
+            return res.status(404).json({
+                  success: false,
+                message : "user not found"
+            });
+        }
+
+        res.status(200).json({
+             success: true,
+         message: "Profile fetched successfully",
+            user : {
+                id : user.userId,
+                pic : null,
+                name : user.name,
+                username : user.username,
+                age : user.age,
+                gender : user.gender,
+                password : user.password,
+                email : user.email,
+            }
+        })
+
+
+        
+    } catch (error) {
+        res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+    }
+
+}
+
+
+exports.editProfile = async (req, res) => {
+
+    try {
+
+        const { name, username, age, email, gender } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        if(!user){
+            return res.status(404).json({
+                  success: false,
+                message : "user not found"
+            });
+        }
+
+        if(!name || !username || !age || !email || !gender ){
+            return res.status(400).json({
+                success: false,
+                message: "Required fields are missing"
+            });
+        }
+
+        user.name = name;
+
+        user.username = username;
+
+        user.age = age;
+
+        user.gender = gender;
+
+        user.email = email;
+
+        // user.pic = pic;
+
+        user.isProfileCompleted = true;
+
+        await user.save();
+
+     res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: user.userId,
+        phone: user.phone,
+        name: user.name,
+        username: user.username,
+        age: user.age,
+        email: user.email,
+        gender: user.gender,
+        pic: user.pic
+      }
+    });
+
+        
+    } catch (error) {
+         res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
 
     }
 

@@ -8,7 +8,9 @@ const {
     signUp,
     login,
     forgot_otp,
-    forgotPassword
+    forgotPassword,
+    getProfile,
+    editProfile
 } = require("../controller/auth.controller");
 
 router.post("/send-otp",sendOtp);
@@ -26,6 +28,10 @@ router.post("/login",login);
 router.post("/forgot-request-otp", forgot_otp);
 
 router.post("/forgotPassword",forgotPassword);
+
+router.get("/getPorifle",authMiddleware,getProfile);
+
+router.patch("/edit-profile",authMiddleware,editProfile);
 
 
 
