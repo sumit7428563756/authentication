@@ -4,7 +4,7 @@ const authMiddleware = require("../middleware/auth.middleware");
 const adminMiddleware = require("../middleware/admin.middleware");
 
 
-// auth routes define
+//  auth route define
 const {
     sendOtp,
     verifyOtp,
@@ -17,16 +17,13 @@ const {
 } = require("../controller/auth.controller");
 
 
-// notes routes define
+//note route define
 const { createNote, getNotes, updateNote, deleteNote } = require("../controller/note.controller");
 
-// admin routes define
-const {
-    adminLogin
-} = require("../controller/admin.controller");
+//admin route define
+const { adminLogin , dashboard, updateAdmin } = require("../controller/admin.controller");
 
-
-// auth route endpoitnts
+// auth route endpoints
 router.post("/send-otp",sendOtp);
 
 router.post("/verify-otp",verifyOtp);
@@ -43,15 +40,15 @@ router.post("/forgot-request-otp", forgot_otp);
 
 router.post("/forgotPassword",forgotPassword);
 
-// profile route endpoints
+// user profile endpoints
 
-router.get("/getPorifle",authMiddleware,getProfile);
+router.get("/getProfile",authMiddleware,getProfile);
 
 router.patch("/edit-profile",authMiddleware,editProfile);
 
-// note route endpoints
 
-router.post("/create-note", authMiddleware, createNote);
+// note route endpoints
+router.post("/create-note", authMiddleware, createNote);   
 
 router.get("/getNotes",authMiddleware,getNotes);
 
@@ -59,10 +56,12 @@ router.patch("/updateNote",authMiddleware,updateNote);
 
 router.delete("/deleteNote",authMiddleware,deleteNote);
 
-//admin route endpoint
+// admin route endpoints
+router.post("/admin-login",adminLogin);
 
-router.post("/admin-login",adminMiddleware,adminLogin);
+router.get("/dashboard",adminMiddleware,dashboard);
 
+router.patch("/admin-update",adminMiddleware,updateAdmin);
 
 
 

@@ -7,11 +7,15 @@ const app = require("./src/app");
 
 const connectDB = require("./src/config/db");
 
+const createAdmin = require("./src/service/createAdmin");
+
 async function startServer() {
 
     try {
 
         await connectDB();
+
+           await createAdmin();
 
         const PORT = process.env.PORT || 3000;
 
