@@ -21,7 +21,8 @@ const {
 const { createNote, getNotes, updateNote, deleteNote } = require("../controller/note.controller");
 
 //admin route define
-const { adminLogin , dashboard, updateAdmin } = require("../controller/admin.controller");
+const { adminLogin ,getAdminProfile, dashboard, updateAdmin,getAllNotes,adminUpdateNote,adminDeleteNote, getAllUser,adminEditUser,adminDeleteUser } = require("../controller/admin.controller");
+const { route } = require('../app');
 
 // auth route endpoints
 router.post("/send-otp",sendOtp);
@@ -59,9 +60,27 @@ router.delete("/deleteNote",authMiddleware,deleteNote);
 // admin route endpoints
 router.post("/admin-login",adminLogin);
 
+router.get("/getAdminProfile",adminMiddleware,getAdminProfile);
+
 router.get("/dashboard",adminMiddleware,dashboard);
 
 router.patch("/admin-update",adminMiddleware,updateAdmin);
+
+// admin note endpoints
+
+router.get("/getAllNotes",adminMiddleware,getAllNotes);
+
+router.patch("/editNote",adminMiddleware,adminUpdateNote);
+
+router.delete("/deleteNote",adminMiddleware,adminDeleteNote);
+
+//admin user route
+
+router.get("/getAllUser",adminMiddleware,getAllUser);
+
+router.patch("/editUser",adminMiddleware,adminEditUser);
+
+router.delete("/deleteUser",adminMiddleware,adminDeleteUser);
 
 
 
