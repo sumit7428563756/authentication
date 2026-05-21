@@ -78,7 +78,7 @@ router.delete("/deleteNote",adminMiddleware,adminDeleteNote);
 
 router.get("/getAllUser",adminMiddleware,getAllUser);
 
-router.patch("/editUser",adminMiddleware,adminEditUser);
+router.patch("/editUser",adminMiddleware,adminEditUser);   
 
 router.delete("/deleteUser",adminMiddleware,adminDeleteUser);
 

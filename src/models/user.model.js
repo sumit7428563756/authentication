@@ -4,7 +4,8 @@ const userSchema = new mongoose.Schema({
 
      userId: {
         type: Number,
-        unique: true
+        unique: true,
+        sparse : true
     },
 
     phone : {
@@ -15,11 +16,19 @@ const userSchema = new mongoose.Schema({
 
     name : String,
 
-    username : String,
+    username: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     
     age : String,
 
-    email : String,
+    email: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
 
     gender: {
         type: String,

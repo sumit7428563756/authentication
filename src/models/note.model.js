@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const noteSchema = new mongoose.Schema({
+const noteSchema = mongoose.Schema({
 
       noteId: {
         type: Number,
@@ -29,7 +29,7 @@ const noteSchema = new mongoose.Schema({
 
     updateDate : {
         type : Date,
-        default : Date
+        default : Date.now
     }
 
     

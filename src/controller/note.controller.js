@@ -1,6 +1,7 @@
 const Note = require("../models/note.model");
 
 
+// create note 
 exports.createNote = async (req,res) => {
 
     try {
@@ -45,6 +46,7 @@ exports.createNote = async (req,res) => {
 }
 
 
+// get notes
 exports.getNotes = async (req,res) => {
 
     try {
@@ -86,6 +88,7 @@ exports.getNotes = async (req,res) => {
 
 }
 
+//update notes
 exports.updateNote = async (req,res) => {
 
  try {
@@ -133,7 +136,7 @@ exports.updateNote = async (req,res) => {
  }
 }
 
-
+// delete note
 exports.deleteNote = async (req,res) => {
 
     try {
