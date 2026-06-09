@@ -111,7 +111,7 @@ exports.verifyOtp = async (req, res) => {
             message : "otp verify successfully",
             token : token
         })
-
+  
     } catch (error) {
 
         res.status(500).json({

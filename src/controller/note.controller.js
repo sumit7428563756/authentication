@@ -2,92 +2,87 @@ const Note = require("../models/note.model");
 
 
 // create note 
-exports.createNote = async (req,res) => {
+exports.createNote = async (req, res) => {
 
     try {
 
         const { img, title, description } = req.body;
 
-        if(!img || !title || !description){
-          return res.status(400).json({
-            message : "Required fields are missing"
-          });
+        if (!img || !title || !description) {
+            return res.status(400).json({
+                message: "Required fields are missing"
+            });
         }
 
-          const lastNote = await Note.findOne().sort({ noteId: -1 });
-
-         const newId = lastNote ? lastNote.noteId + 1 : 1;
-
+        const lastNote = await Note.findOne().sort({ noteId: -1 });
+        const newId = lastNote ? lastNote.noteId + 1 : 1;
 
         const note = await Note.create({
             noteId: newId,
             img,
             title,
-            description
-     } )
+            description,
+            userId: req.user._id   
+        });
 
-      return res.status(201).json({
+        return res.status(201).json({
             message: "Note created successfully",
-            note : {
-                id : note.noteId,
-                img : note.img,
-                title : note.title,
-                description : note.description,
-                date : note.date
+            note: {
+                id: note.noteId,
+                img: note.img,
+                title: note.title,
+                description: note.description,
+                date: note.date
             }
         });
-        
+
     } catch (error) {
         res.status(500).json({
-           message : "server error" + error.message
-        })
+            message: "server error " + error.message
+        });
     }
-
-}
+};
 
 
 // get notes
-exports.getNotes = async (req,res) => {
+exports.getNotes = async (req, res) => {
 
     try {
 
-        const page = Number(req.query.page);
-        const limit = Number(req.query.limit);
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
 
         const skip = (page - 1) * limit;
 
-        const notes = await Note.find().sort({noteId : -1}).skip(skip).limit(limit);
+        const notes = await Note.find({ userId: req.user._id }) 
+            .sort({ noteId: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        if(notes.length === 0){
-
-            return res.status(400).json({
-                message : "Notes are empty",
-                notes : []
+        if (notes.length === 0) {
+            return res.status(200).json({
+                message: "No notes found",
+                notes: []
             });
         }
-        
 
         res.status(200).json({
-            message : "notes fetched successfully",
+            message: "notes fetched successfully",
             notes: notes.map((note) => ({
                 id: note.noteId,
                 img: note.img,
                 title: note.title,
                 description: note.description,
-                date : note.date
+                date: note.date
             }))
-        })
+        });
 
     } catch (error) {
-        res.status(500).json(
-            {
-                message : "server error" + error.message
-            }
-        )
+        res.status(500).json({
+            message: "server error " + error.message
+        });
     }
-
-}
-
+};
 //update notes
 exports.updateNote = async (req,res) => {
 
@@ -98,7 +93,7 @@ exports.updateNote = async (req,res) => {
     const note =  await Note.findOne({noteId : id});
 
 
-    if(!id){
+    if(!id){   
         return res.status(400).json({
             message : "Note id is required"
         });
