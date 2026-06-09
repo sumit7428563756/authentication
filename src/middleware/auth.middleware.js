@@ -19,7 +19,11 @@ module.exports = async (req,res,next) => {
             process.env.JWT_SECRET
         );
 
-        req.user = decode;
+        console.log("DECODED TOKEN:", decode);
+
+        req.user = {
+            _id: decode.id   // 👈 IMPORTANT FIX
+        };
 
         next();
 
