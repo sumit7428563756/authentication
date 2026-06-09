@@ -60,7 +60,7 @@ exports.getNotes = async (req, res) => {
         })
             .sort({ noteId: -1 })
             .skip(skip)
-            .limit(limit); l̥
+            .limit(limit); 
 
         if (notes.length === 0) {
             return res.status(200).json({
