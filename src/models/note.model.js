@@ -7,6 +7,12 @@ const noteSchema = mongoose.Schema({
         unique: true
     },
 
+       userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        required: true
+    },
+
     img : {
         type : String,
         required : true
